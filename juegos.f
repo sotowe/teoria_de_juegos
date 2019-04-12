@@ -12,7 +12,7 @@
        integer n !tamaño matriz
        integer i,j !contadores
        integer s !número de iteracciones antes de la selección
-       n = 50
+       n = 4
        s = 10
        allocate (m(n,n))
        allocate (rac(n,n))
@@ -26,17 +26,36 @@
             end do
        end do
        
-       !Inicializamos todas las recomensas acumuladas a 0
-       rac(:,:) = 0
+      
        !Vamos a usar la matriz de recompensas del dilema del prisionero 
        rec(1,1) = 3
        rec(1,2) = 0
        rec(2,1) = 5
        rec(2,2) = 1
        
+       do j = 1,5
+       !Inicializamos todas las recomensas acumuladas a 0
+       rac(:,:) = 0
        !Iniciamos el juego por un tiempo s
        do i = 1,s
            call recompensasMoran()
+       end do
+       write(*,*) "recompensas"
+       do i = 1,n
+       write(*,*) rac(i,:)
+       end do
+       write(*,*)
+       write(*,*) "matriz m"
+       do i = 1,n
+       write(*,*) m(i,:)
+       end do
+       write(*,*)
+       call reproduccion()
+       write(*,*)
+       write(*,*) "matriz m"
+       do i = 1,n
+       write(*,*) m(i,:)
+       end do
        end do
        
        
@@ -83,7 +102,43 @@
        rac(fil2,col2) = rac(fil2,col2) + b
        return
        end subroutine
-           
+       
+       subroutine reproduccion()
+       !Elegimos aleatoriamente de manera proporcional a su beneficio a 
+       ! un sujeto para que se reproduzca
+       integer i,j,hijo
+       integer a,b
+       a = 0
+       do i =1,n
+           do j = 1,n
+               a = rac(i,j) + a
+           end do
+       end do
+       write(*,*) "a1",a
+       b = ceiling(a*dran_u())
+       write(*,*) "b", b
+       do i = 1,n
+           do j=1,n
+               b = b-rac(i,j)
+               if (b.le.0) then
+                   hijo = m(i,j)
+                   write(*,*) "coordenada", i,j
+                   write(*,*) "hijo", m(i,j)
+                   go to 10
+               end if
+           end do
+       end do 
+10     continue       
+       !Ahora elegimos a un sujeto al azar que será reemplazado por el 
+       ! nuevo individuo
+       i = ceiling(dran_u()*n)
+       j = ceiling(dran_u()*n)
+       m(i,j) = hijo
+       
+       return
+       end subroutine
+       
+                   
            
            
        end
