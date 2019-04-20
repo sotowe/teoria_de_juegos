@@ -10,12 +10,17 @@
        !cada elemento de m
        integer rec(2,2) !matriz de recompensas
        integer n !tamaño matriz
-       integer i,j !contadores
+       integer i,j,t,k !contadores
        integer s !número de iteracciones antes de la selección
-       n = 4
+       n = 50
        s = 10
        allocate (m(n,n))
        allocate (rac(n,n))
+       
+       !archivos de texto donde escribir los datos
+       open(unit=10,file='matrizinicial.dat',status='unknown')
+       open(unit=11,file='matrizfinal.dat',status='unknown')
+       
        !La matriz m estará compuesta por 1 y 0. Los 0 corresponden
        !a los cooperadores y los 1 a los desertores.
        !los voy a hacer aleatoriamente como primera prueba.
@@ -33,29 +38,32 @@
        rec(2,1) = 5
        rec(2,2) = 1
        
-       do j = 1,5
-       !Inicializamos todas las recomensas acumuladas a 0
-       rac(:,:) = 0
-       !Iniciamos el juego por un tiempo s
-       do i = 1,s
-           call recompensasMoran()
+       !Escribimos la matriz Inicial
+       do i=1,n
+           write(10,*) m(i,:)
        end do
-       write(*,*) "recompensas"
-       do i = 1,n
-       write(*,*) rac(i,:)
-       end do
-       write(*,*)
-       write(*,*) "matriz m"
-       do i = 1,n
-       write(*,*) m(i,:)
-       end do
-       write(*,*)
-       call reproduccion()
-       write(*,*)
-       write(*,*) "matriz m"
-       do i = 1,n
-       write(*,*) m(i,:)
-       end do
+       write(10,*)" "
+       !El programa se ejecutará una serie de ciclos, que constan de
+       !un número de iteraciones s seguidas de una reproducción
+       t = 4
+       !cada paso montecarlo son n^2 ciclos.
+       do j = 1,t
+            do k = 1,n**2
+               !Inicializamos todas las recomensas acumuladas a 0
+               rac(:,:) = 0
+               !Iniciamos el juego por un tiempo s
+               do i = 1,s*n**2
+                   call recompensasMoran()
+               end do
+               !Una vez realizadas las recompensas realizamos la 
+               !reproducción
+               call reproduccion()
+            end do
+      end do
+      
+      !Escribimos la matriz final
+       do i=1,n
+           write(11,*) m(i,:)
        end do
        
        
@@ -114,16 +122,12 @@
                a = rac(i,j) + a
            end do
        end do
-       write(*,*) "a1",a
        b = ceiling(a*dran_u())
-       write(*,*) "b", b
        do i = 1,n
            do j=1,n
                b = b-rac(i,j)
                if (b.le.0) then
                    hijo = m(i,j)
-                   write(*,*) "coordenada", i,j
-                   write(*,*) "hijo", m(i,j)
                    go to 10
                end if
            end do
